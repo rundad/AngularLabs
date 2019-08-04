@@ -1,5 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
+import { AuthService } from 'server/auth.service';
+import { HttpErrorResponse } from '@angular/common/http';
 
 @Component({
   selector: 'app-login',
@@ -15,17 +17,24 @@ export class LoginComponent implements OnInit {
     {"email": "123@com.au", "password": "123"},
     {"email": "hello@com.au", "password": "world"}
   ]
-  constructor(private router: Router) { }
+
+  constructor(private router:Router, private authservice: AuthService) { }
 
   ngOnInit() {
   }
 
   buttonClicked(){
-    if(this.matchInputs(this.email, this.password, this.an_array)){
-      this.router.navigateByUrl("/account")
-    }else{
-      alert("Error: Incorrect email address or password")
-    }
+    this.authservice.login(this.email, this.password).subscribe(data=>{
+      const json_data = JSON.stringify(data)
+      if(data.valid === true){
+        this.router.navigateByUrl('/account');
+      }else{
+        alert("Email and password were incorrect")
+      }
+      sessionStorage.setItem("currentUserData", json_data);
+    }, (err: HttpErrorResponse)=>{
+      alert("Email and password were incorrect")
+    })
   }
 
   matchInputs(emailAdd, pass, array){
